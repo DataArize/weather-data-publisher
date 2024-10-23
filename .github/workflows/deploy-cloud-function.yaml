@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  deploy_to_artifact_registry:
+  deploy_to_cloud_function:
     runs-on: ubuntu-latest
     steps:
       - name: Git Checkout
@@ -40,10 +40,10 @@ jobs:
           ENVIRONMENT: "TEST"
         run: |
           coverage run -m pytest
-          coverage report --fail-under=80
+          coverage report --fail-under=99
 
-      - name: List files in current directory
-        run: ls -la
+      - name: Lint code
+        run: pip install flake8 && flake8 src/
 
       - name: Upload coverage results
         if: success()
