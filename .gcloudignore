@@ -12,6 +12,11 @@
 # below:
 .git
 .gitignore
+test
+readme.md
+.coverage
+.coveragerc
+.pytest_cache
 
 node_modules
 #!include:.gitignore
