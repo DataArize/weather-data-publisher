@@ -18,6 +18,8 @@ readme.md
 .coveragerc
 .pytest_cache
 __pycache__
+**/__pycache__/
+
 
 
 node_modules
