@@ -4,6 +4,7 @@ from requests import request
 
 from src.config.constants import GEOCODING_PARAM_ZIP, API_KEY_PARAM, OPENWEATHER_GEOCODING_API_BASE_URL, METHOD_GET, \
     WEATHER_PARAM_LAT, WEATHER_PARAM_LON, OPENWEATHER_API_BASE_URL
+from src.config.settings import API_KEY
 from src.data_ingestion.mapper import map_weather_response
 from src.exceptions.exception import CoordinatesError, WeatherApiError
 from src.utils.logger import logger
@@ -74,7 +75,8 @@ class APIClient:
         if weather_response.status_code == 200:
             logger.info(f"Successfully fetched weather information for lat: {lat}, lon: {lon}")
             weather_data = map_weather_response(weather_response.json())
-            return json.dumps(weather_data.__dict__, default=lambda x: x.__dict__)
+            logger.info(f"message: {weather_data.__dict__}")
+            return weather_data.to_dict()
 
         logger.error(f"Error fetching weather information, lat: {lat}, lon: {lon}, "
                      f"status: {weather_response.status_code}, message: {weather_response.text}")

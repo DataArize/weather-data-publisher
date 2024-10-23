@@ -13,3 +13,7 @@ class WeatherApiError(Exception):
 class CoordinatesError(Exception):
     """Raised when the coordinates (latitude and longitude) cannot be fetched or are invalid."""
     pass
+
+class PublishError(Exception):
+    """Raised when the publishing failed """
+    pass
