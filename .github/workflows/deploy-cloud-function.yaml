@@ -38,4 +38,14 @@ jobs:
           GOOGLE_CLOUD_PROJECT: ${{ secrets.PROJECT_ID }}
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
           ENVIRONMENT: "TEST"
-        run: coverage run -m pytest
+        run: |
+          coverage run -m pytest
+          coverage report --fail-under=80
+
+      - name: Upload coverage results
+        if: success()
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage-report
+          path: .coverage
+
