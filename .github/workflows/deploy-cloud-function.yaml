@@ -57,4 +57,4 @@ jobs:
           --trigger-http \
           --entry-point entry_point \
           --source . \
-          --set-env-vars GOOGLE_CLOUD_PROJECT=${{ secrets.GOOGLE_CLOUD_PROJECT }},OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }} --verbosity=debug
+          --set-env-vars GOOGLE_CLOUD_PROJECT=${{ secrets.PROJECT_ID }},OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }} --verbosity=debug
