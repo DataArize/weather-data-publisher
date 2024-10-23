@@ -1,6 +1,4 @@
 # Project-related constants
-from jinja2 import Environment
-
 PROJECT_ID_KEY = "GOOGLE_CLOUD_PROJECT"
 
 # OpenWeather API related constants
