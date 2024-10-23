@@ -37,4 +37,5 @@ jobs:
         env:
           GOOGLE_CLOUD_PROJECT: ${{ secrets.PROJECT_ID }}
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          ENVIRONMENT: "TEST"
         run: coverage run -m pytest
