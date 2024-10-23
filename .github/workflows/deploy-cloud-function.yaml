@@ -52,4 +52,20 @@ jobs:
           retention-days: 10
 
       - name: Deploy to cloud function
-        run: gcloud functions deploy ${{ secrets.GCP_FUNCTION_NAME }} --runtime python312 --trigger-http --entry-point entry_point --source . --set-env-vars GOOGLE_CLOUD_PROJECT=${{ secrets.PROJECT_ID }},OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }} --verbosity=debug
+        run: gcloud functions deploy ${{ secrets.GCP_FUNCTION_NAME }} --runtime python312 --trigger-http --entry-point entry_point --source . --set-env-vars GOOGLE_CLOUD_PROJECT=${{ secrets.PROJECT_ID }},OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }}
+
+      - name: Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: workflow,job,commit,repo,ref,author,took
+          custom_payload: |
+            {
+              attachments: [{
+                color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
+                text: `${process.env.AS_WORKFLOW}\n${process.env.AS_JOB} (${process.env.AS_COMMIT}) of ${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} ${{ job.status }} in ${process.env.AS_TOOK}`,
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
