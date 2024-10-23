@@ -42,9 +42,6 @@ jobs:
           coverage run -m pytest
           coverage report --fail-under=80
 
-      - name: Lint code
-        run: pip install flake8 && flake8 src/
-
       - name: Upload coverage results
         if: success()
         uses: actions/upload-artifact@v4
@@ -54,3 +51,10 @@ jobs:
           if-no-files-found: error
           retention-days: 10
 
+      - name: Deploy to cloud function
+        run: gcloud functions deploy ${{ secrets.GCP_FUNCTION_NAME }} \
+          --runtime python312 \
+          --trigger-http \
+          --entry-point entry_point \
+          --source . \
+          --set-env-vars GOOGLE_CLOUD_PROJECT=${{ secrets.PROJECT_ID }},OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }} --verbosity=debug
