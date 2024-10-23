@@ -1,14 +1,27 @@
 import os
-from src.config.constants import PROJECT_ID_KEY
+from google.cloud import pubsub_v1
+from src.config.constants import (
+    PROJECT_ID_KEY,
+    OPENWEATHER_API_KEY,
+    ERROR_MSG_PROJECT_ID_NOT_SET,
+    ERROR_MSG_API_KEY_NOT_SET,
+)
 from src.exceptions.exception import ProjectIdError, ApiKeyError
 
-PROJECT_ID = os.getenv(PROJECT_ID_KEY)
 
-if not PROJECT_ID:
-    raise ProjectIdError(f"The project ID environment variable {PROJECT_ID_KEY} is not set.")
+def load_configuration():
+    project_id = os.getenv(PROJECT_ID_KEY)
+    if not project_id:
+        raise ProjectIdError(ERROR_MSG_PROJECT_ID_NOT_SET)
+
+    api_key = os.getenv(OPENWEATHER_API_KEY)
+    if not api_key:
+        raise ApiKeyError(ERROR_MSG_API_KEY_NOT_SET)
+
+    return project_id, api_key
 
 
-api_key = os.getenv('OPENWEATHER_API_KEY')
-print(api_key)
-if not api_key:
-    raise ApiKeyError("The API key is not set. Please set the OPENWEATHER_API_KEY environment variable.")
+PROJECT_ID, API_KEY = load_configuration()
+
+# Initialize Pub/Sub publisher
+publisher = pubsub_v1.PublisherClient()
