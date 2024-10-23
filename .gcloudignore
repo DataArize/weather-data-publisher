@@ -10,6 +10,7 @@
 # If you would like to upload your .git directory, .gitignore file or files
 # from your .gitignore file, remove the corresponding line
 # below:
+.github
 .git
 .gitignore
 test
@@ -18,6 +19,7 @@ readme.md
 .coveragerc
 .pytest_cache
 __pycache__
+**/__pycache__/
 
 
 node_modules
