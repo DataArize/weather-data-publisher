@@ -1,3 +1,7 @@
 google-cloud-pubsub
-requests
+requests~=2.32.3
 google-cloud-logging
+protobuf~=5.28.2
+flask
+pytest
+coverage

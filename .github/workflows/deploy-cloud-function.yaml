@@ -1,0 +1,82 @@
+name: CI-CD
+on:
+  push:
+    branches: ["main","develop","release/**"]
+  pull_request:
+    types: [opened]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy_to_cloud_function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      # Authenticate with GCP
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ secrets.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Quality Checks
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.PROJECT_ID }}
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+          ENVIRONMENT: "TEST"
+        run: |
+          coverage run -m pytest
+          coverage report --fail-under=80
+
+      - name: Upload coverage results
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: .
+          if-no-files-found: error
+          retention-days: 10
+
+      - name: Determine Function Name
+        id: function_name
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "develop" ]]; then
+            echo "FUNCTION_NAME=${{ secrets.GCP_FUNCTION_NAME }}-dev" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "FUNCTION_NAME=${{ secrets.GCP_FUNCTION_NAME }}-prod" >> $GITHUB_ENV
+          else
+            echo "FUNCTION_NAME=${{ secrets.GCP_FUNCTION_NAME }}-staging" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to cloud function
+        run: gcloud functions deploy $FUNCTION_NAME --runtime python312 --trigger-http --entry-point entry_point --source . --set-env-vars GOOGLE_CLOUD_PROJECT=${{ secrets.PROJECT_ID }},OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }}
+
+      - name: Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: workflow,job,commit,repo,ref,author,took
+          custom_payload: |
+            {
+              attachments: [{
+                color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
+                text: `Action Name: ${process.env.AS_WORKFLOW}\nJOB Name: ${process.env.AS_JOB} (${process.env.AS_COMMIT})\n Repository Name:${process.env.AS_REPO}@${process.env.AS_REF} by ${process.env.AS_AUTHOR} ${{ job.status }} in ${process.env.AS_TOOK}`,
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()
